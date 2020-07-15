@@ -45,7 +45,6 @@ export default class Success extends React.Component {
             {this.props.details3}
           </Text>
           <Button name="Go to"/>
-          <Text>Stay Here</Text>
         </View>
       </View>
     );

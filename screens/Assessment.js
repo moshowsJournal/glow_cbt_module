@@ -21,6 +21,7 @@ import {
   import {GetAsyncStorageHandler} from '../components/HandlerFunctions';
   import {PostRequestWithTokenHandler} from '../components/HandlerFunctions';
   import {endPoint} from '../components/baseapi';
+  import DateTimePickerModal from "react-native-modal-datetime-picker";
   // import axios from 'axios';
   // import Snackbar from 'react-native-snackbar';
   // import {endPoint} from '../components/baseapi';
@@ -36,14 +37,21 @@ export const CreateAssessment = () => {
     'term' : '',
     'year' : '',
     'percentage' : '',
-    'duration' : ''
+    'duration' : '',
+    'start_time' : '',
+    'start_date' : '',
+    'end_time' : '',
+    'end_date' : ''
   });
   
-  const [subjects,setSubjects] = useState([]);
-  const [classes,setStudClasses] = useState([]);
-  const [school_id,setSchoolId] = useState('');
-  const [is_successful, setSuccessful] = useState(false); 
-  const [is_processing,setProcessing] = useState(false);
+  let [subjects,setSubjects] = useState([]);
+  let [classes,setStudClasses] = useState([]);
+  let [school_id,setSchoolId] = useState('');
+  let [is_successful, setSuccessful] = useState(false); 
+  let [is_processing,setProcessing] = useState(false);
+  let [mode, setMode] = useState(mode);
+  let [is_visible, setVisible] = useState(false); 
+  let [picker_selected,setPickerSelected] = useState('');
     useEffect(()=>{
         //save the login response into async storage
         GetAsyncStorageHandler().then(res => {
@@ -76,7 +84,7 @@ export const CreateAssessment = () => {
                     padding: 8,
                     borderRadius: 10,
                     marginTop: RH(2),
-                    height: RH(100)
+                    height: RH(140)
                   }}>
         
                 <View style={styles.case}>
@@ -156,7 +164,82 @@ export const CreateAssessment = () => {
                       onChangeText={(value)=>setAssessment({...assessment,percentage:value})}
                   />
                 </View>
+                <View style={styles.case}>
+                  <TouchableOpacity
+                  onPress={()=>{
+                    setMode('date');
+                    setVisible(true);
+                    setPickerSelected('start_date');
+                  }}
+                  >
+                  <Text style={styles.datetimepicker}>{assessment.start_date.trim() === '' ? 'Pick Start Date' :
+                   assessment.start_date}</Text>
+                  </TouchableOpacity>
                 
+                </View>
+                <View style={styles.case}>
+                  <TouchableOpacity
+                  onPress={()=>{
+                    setMode('time');
+                    setVisible(true);
+                    setPickerSelected('start_time');
+                  }}
+                  >
+                  <Text style={styles.datetimepicker}>{assessment.start_time.trim() === '' ? 'Pick Start Time' :
+                   assessment.start_time}</Text>
+                  </TouchableOpacity>
+                
+                </View>
+
+                <View style={styles.case}>
+                  <TouchableOpacity
+                  onPress={()=>{
+                    setMode('date');
+                    setVisible(true);
+                    setPickerSelected('end_date');
+                  }}
+                  >
+                  <Text style={styles.datetimepicker}>
+                  {assessment.end_date.trim() === '' ? 'Pick End Date' :
+                   assessment.end_date}
+                  </Text>
+                  </TouchableOpacity>
+                
+                </View>
+                <View style={styles.case}>
+                  <TouchableOpacity
+                  onPress={()=>{
+                    setMode('time');
+                    setVisible(true);
+                    setPickerSelected('end_time');
+                  }}
+                  >
+                  <Text style={styles.datetimepicker}>{assessment.end_time.trim() === '' ? 'Pick End Time' :
+                   assessment.end_time}</Text>
+                  </TouchableOpacity>
+                
+                </View>
+                <DateTimePickerModal
+        isVisible={is_visible}
+        mode={mode}
+        onConfirm={(value)=>{
+          if(mode === 'time' && picker_selected === 'start_time'){
+            setAssessment({...assessment,start_time : value.toTimeString().split(' (')[0]});
+          }if(mode === 'date' && picker_selected === 'start_date'){
+            setAssessment({...assessment,start_date:value.toDateString()});
+          }
+          if(mode === 'time' && picker_selected === 'end_time'){
+            setAssessment({...assessment,end_time:value.toTimeString().split(' (')[0]});
+          }if(mode === 'date' && picker_selected === 'end_date'){
+            setAssessment({...assessment,end_date:value.toDateString()});
+          }
+          setPickerSelected('');
+          setVisible(false);
+        }}
+        onCancel={()=>{
+          setVisible(false);
+        }}
+      />
                 <View style={styles.case}>
                   <TextInput
                       style={styles.textinput}
@@ -165,19 +248,24 @@ export const CreateAssessment = () => {
                   />
                 </View>
                 <TouchableOpacity style={{marginTop:20}}
+                disabled={is_processing}
+
                         onPress={()=>{
-                            console.log(assessment);
+                            
                             for(let value of Object.values(assessment)){
                                 if(value.trim() === ''){
                                     alert('Fields can not be empty');
                                     return false;
                                 }
                             }
+                            let data = {...assessment,startDate:`${assessment.start_date} ${assessment.start_time}`,
+                            endDate:`${assessment.end_date} ${assessment.end_time}`,questions:[]}
+                            console.log(data); 
                            // setProcessing(true);
                             PostRequestWithTokenHandler(`${endPoint}/api/v1/schools/${school_id}/assessments`,assessment).then((res)=>{
                                 setProcessing(false);
                                 console.log(res);
-                                if(response.status === 201){
+                                if(response.status === 'success'){
                                     setSuccessful(true);
                                 }
                                 return setProcessing(false);
@@ -236,6 +324,17 @@ const styles = StyleSheet.create({
     paddingLeft: 28,
     marginTop: RH(5),
     backgroundColor: '#F8F8F8',
+  },
+  datetimepicker: {
+    width: RW(75),
+    height: RH(6),
+    borderRadius: 50,
+    borderColor: '#00921B',
+    paddingLeft: 28,
+    paddingTop:10,
+    marginTop: RH(5),
+    backgroundColor: '#F8F8F8',
+    color:'grey'
   },
   case: {
     flexDirection: 'row',

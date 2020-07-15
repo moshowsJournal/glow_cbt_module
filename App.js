@@ -37,7 +37,7 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator>
         
-      <Stack.Screen name="Examination" 
+      {/* <Stack.Screen name="Examination" 
       component={StudentExamination} 
          navigationOptions = {{visible : false}}
       />
@@ -45,7 +45,7 @@ const App = () => {
           name="StartExam"
           component={StartExam}
           
-        />
+        /> */}
         <Stack.Screen name="CreateAssessment" component={CreateAssessment} />
         <Stack.Screen name="ExamScreen" component={ExamScreen} />
         <Stack.Screen name="QuestionsList" component={QuestionsList} />
